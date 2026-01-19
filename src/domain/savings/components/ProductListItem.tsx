@@ -1,4 +1,4 @@
-import { Assets, colors, ListRow } from 'tosslib';
+import { Assets, colors, ListRow, Text } from 'tosslib';
 import { commaizeNumber } from '@shared/utils';
 import type { SavingsProduct } from '@savings/apis/type';
 
@@ -16,12 +16,21 @@ export const ProductListItem = ({ savingsProduct, selected, onClick }: ProductLi
       contents={
         <ListRow.Texts
           type="3RowTypeA"
-          top={name}
-          topProps={{ fontSize: 16, fontWeight: 'bold', color: colors.grey900 }}
-          middle={`연 이자율: ${annualRate}%`}
-          middleProps={{ fontSize: 14, color: colors.blue600, fontWeight: 'medium' }}
-          bottom={`${commaizeNumber(minMonthlyAmount)}원 ~ ${commaizeNumber(maxMonthlyAmount)}원 | ${availableTerms}개월`}
-          bottomProps={{ fontSize: 13, color: colors.grey600 }}
+          top={
+            <Text fontSize={16} fontWeight="bold" color={colors.grey900}>
+              {name}
+            </Text>
+          }
+          middle={
+            <Text fontSize={14} color={colors.blue600} fontWeight="medium">
+              연 이자율: {annualRate}%
+            </Text>
+          }
+          bottom={
+            <Text fontSize={13} color={colors.grey600}>
+              {commaizeNumber(minMonthlyAmount)}원 ~ {commaizeNumber(maxMonthlyAmount)}원 | {availableTerms}개월
+            </Text>
+          }
         />
       }
       right={selected && <Assets.Icon name="icon-check-circle-green" />}

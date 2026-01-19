@@ -1,7 +1,7 @@
-import { Border, NavigationBar, SelectBottomSheet, Spacing } from 'tosslib';
-import { NumberField } from '@shared/ui';
+import { Border, NavigationBar, Spacing } from 'tosslib';
+import { NumberField, Select } from '@shared/ui';
 import { useSavingsForm } from '@savings/hooks';
-import { SavingsTabs } from 'domain/savings/components/SavingsTabs';
+import { SavingsTabs } from '@savings/components/SavingsTabs';
 
 function SavingsCalculatorPage() {
   const { savingsForm, updateSavingsForm } = useSavingsForm();
@@ -28,16 +28,17 @@ function SavingsCalculatorPage() {
         suffix="원"
       />
       <Spacing size={16} />
-      <SelectBottomSheet
-        label="저축 기간"
+      <Select
         value={savingPeriod}
         onChange={val => updateSavingsForm({ savingPeriod: val })}
+        label="저축 기간"
         title="저축 기간을 선택해주세요"
-      >
-        <SelectBottomSheet.Option value={6}>6개월</SelectBottomSheet.Option>
-        <SelectBottomSheet.Option value={12}>12개월</SelectBottomSheet.Option>
-        <SelectBottomSheet.Option value={24}>24개월</SelectBottomSheet.Option>
-      </SelectBottomSheet>
+        options={[
+          { label: '6개월', value: 6 },
+          { label: '12개월', value: 12 },
+          { label: '24개월', value: 24 },
+        ]}
+      />
       <Spacing size={24} />
       <Border height={16} />
       <Spacing size={8} />

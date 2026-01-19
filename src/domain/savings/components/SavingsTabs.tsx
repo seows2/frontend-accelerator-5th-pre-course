@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { Border, Button, ListHeader, ListRow, Spacing, Tab } from 'tosslib';
-import { arrayIncludes, roundToUnit } from '@shared/utils';
+import { Border, Button, colors, ListHeader, ListRow, Spacing, Tab, Text } from 'tosslib';
+import { arrayIncludes, commaizeNumber, roundToUnit } from '@shared/utils';
 import { SuspenseBoundary, SwitchCase, Delay } from '@shared/ui';
-import { calcSavingsResult } from '@savings/utils';
+import { calcDifferenceFromGoal, calcExpectedReturn, calcRecommendedMonthlySaving } from '@savings/utils';
 import { useSavingsProducts } from '@savings/hooks/queries';
 import { ProductListItem } from './ProductListItem';
-import { CalculationResult } from './CalculationResult';
 import type { SavingsProduct } from '@savings/apis/type';
 import type { SavingsForm } from '@savings/hooks';
 
@@ -60,20 +59,20 @@ export const SavingsTabs = (props: SavingsTabsProps) => {
   );
 };
 
+const RECOMMENDED_PRODUCTS_COUNT = 2;
+
 const Contents = ({ activeTab, savingsForm }: SavingsTabsProps & { activeTab: string }) => {
   const { monthlySaving, savingPeriod } = savingsForm;
-  const { data: savingsProducts } = useSavingsProducts({
+  const savingsProducts = useSavingsProducts({
     filterParams: {
       monthlySaving,
       savingPeriod,
     },
-  });
+  }).data;
   const [selectedProduct, setSelectedProduct] = useState<SavingsProduct>();
-  const recommendedProducts = [...savingsProducts].sort((a, b) => b.annualRate - a.annualRate).slice(0, 2);
-
-  const handleClickProduct = (sp: SavingsProduct) => {
-    setSelectedProduct(sp);
-  };
+  const recommendedProducts = [...savingsProducts]
+    .sort((a, b) => b.annualRate - a.annualRate)
+    .slice(0, RECOMMENDED_PRODUCTS_COUNT);
 
   return (
     <SwitchCase
@@ -83,7 +82,7 @@ const Contents = ({ activeTab, savingsForm }: SavingsTabsProps & { activeTab: st
           <ProductListItem
             key={p.id}
             savingsProduct={p}
-            onClick={handleClickProduct}
+            onClick={setSelectedProduct}
             selected={p.id === selectedProduct?.id}
           />
         )),
@@ -93,20 +92,56 @@ const Contents = ({ activeTab, savingsForm }: SavingsTabsProps & { activeTab: st
             {selectedProduct ? (
               (() => {
                 const annualRate = selectedProduct?.annualRate || 0;
-                const { expectedReturn, differenceFromGoal, recommendedMonthlySaving } = calcSavingsResult(
-                  monthlySaving,
+                const expectedReturn = calcExpectedReturn(monthlySaving, savingPeriod, annualRate);
+                const differenceFromGoal = calcDifferenceFromGoal(savingsForm.goalAmount, expectedReturn);
+                const recommendedMonthlySaving = calcRecommendedMonthlySaving(
+                  savingsForm.goalAmount,
                   savingPeriod,
                   annualRate
                 );
 
                 return (
-                  <CalculationResult
-                    result={{
-                      expectedReturn: roundToUnit(expectedReturn),
-                      differenceFromGoal: roundToUnit(differenceFromGoal),
-                      recommendedMonthlySaving: roundToUnit(recommendedMonthlySaving),
-                    }}
-                  />
+                  <>
+                    <ListRow
+                      contents={
+                        <ListRow.Texts
+                          type="2RowTypeA"
+                          top={<Text color={colors.grey600}>예상 수익 금액</Text>}
+                          bottom={
+                            <Text fontWeight="bold" color={colors.blue600}>
+                              {commaizeNumber(roundToUnit(expectedReturn))}원
+                            </Text>
+                          }
+                        />
+                      }
+                    />
+                    <ListRow
+                      contents={
+                        <ListRow.Texts
+                          type="2RowTypeA"
+                          top={<Text color={colors.grey600}>목표 금액과의 차이</Text>}
+                          bottom={
+                            <Text fontWeight="bold" color={colors.blue600}>
+                              {commaizeNumber(roundToUnit(differenceFromGoal))}원
+                            </Text>
+                          }
+                        />
+                      }
+                    />
+                    <ListRow
+                      contents={
+                        <ListRow.Texts
+                          type="2RowTypeA"
+                          top={<Text color={colors.grey600}>추천 월 납입 금액</Text>}
+                          bottom={
+                            <Text fontWeight="bold" color={colors.blue600}>
+                              {commaizeNumber(roundToUnit(recommendedMonthlySaving))}원
+                            </Text>
+                          }
+                        />
+                      }
+                    />
+                  </>
                 );
               })()
             ) : (
@@ -124,7 +159,7 @@ const Contents = ({ activeTab, savingsForm }: SavingsTabsProps & { activeTab: st
                 <ProductListItem
                   key={rp.id}
                   savingsProduct={rp}
-                  onClick={handleClickProduct}
+                  onClick={setSelectedProduct}
                   selected={rp.id === selectedProduct?.id}
                 />
               );

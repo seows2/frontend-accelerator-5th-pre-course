@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
-
-import type { SavingsProduct, SavingsProductsFilterParams } from '@savings/apis/type';
+import { isInRange } from '@shared/utils';
 import { savingsQueryOptions } from './options';
+import type { SavingsProduct, SavingsProductsFilterParams } from '@savings/apis/type';
 
 type UseSavingsProductsProps = {
   filterParams?: SavingsProductsFilterParams;
@@ -17,7 +17,7 @@ const useSavingsProducts = ({ filterParams }: UseSavingsProductsProps) => {
   const filteredProduct = savingsProducts.filter((savingsProduct: SavingsProduct) => {
     const { minMonthlyAmount, maxMonthlyAmount, availableTerms } = savingsProduct;
     // 1. 월 납입액 조건
-    const monthlyMatchs = !monthlySaving || (monthlySaving >= minMonthlyAmount && monthlySaving <= maxMonthlyAmount);
+    const monthlyMatchs = !monthlySaving || isInRange(monthlySaving, minMonthlyAmount, maxMonthlyAmount);
 
     // 2. 저축 기간 조건
     const termMathcs = !savingPeriod || availableTerms === savingPeriod;
